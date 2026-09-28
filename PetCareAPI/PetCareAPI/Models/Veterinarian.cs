@@ -11,6 +11,6 @@ namespace PetCareAPI.Models
         public string Address { get; set; }
         public Specialization Specialization { get; set; }
         public bool IsActive { get; set; }
-        public List<Appointment> Appointments { get; set; }
+        public List<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

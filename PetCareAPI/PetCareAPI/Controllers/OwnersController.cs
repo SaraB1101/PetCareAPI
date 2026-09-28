@@ -7,10 +7,10 @@ namespace PetCareAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OwnerController : ControllerBase
+    public class OwnersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public OwnerController(ApplicationDbContext context)
+        public OwnersController(ApplicationDbContext context)
         {
             _context = context;
         }

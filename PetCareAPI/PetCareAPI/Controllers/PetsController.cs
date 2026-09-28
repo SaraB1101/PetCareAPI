@@ -19,7 +19,9 @@ namespace PetCareAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPets()
         {
-            var pets = await _context.Pets.ToListAsync();
+            var pets = await _context.Pets
+                .Include(p => p.Owner)
+                .ToListAsync();
             return Ok(pets);
         }
 
