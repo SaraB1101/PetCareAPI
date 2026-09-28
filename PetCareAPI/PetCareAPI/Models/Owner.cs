@@ -8,7 +8,7 @@ namespace PetCareAPI.Models
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }
-        public List<Pet> Pets { get; set; }
+        public List<Pet> Pets { get; set; } = new List<Pet>();
         [Required]
         public string PhoneNumber { get; set; }
         [Required]

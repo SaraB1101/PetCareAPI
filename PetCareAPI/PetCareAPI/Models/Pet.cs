@@ -4,10 +4,9 @@ namespace PetCareAPI.Models
 {
     public class Pet
     {
-        [Required]
         public int Id { get; set; }
         public int OwnerId { get; set; }
-        public Owner Owner { get; set; }
+        public Owner? Owner { get; set; }
         [Required]
         public string Name { get; set; }        
         public PetType Type { get; set; }
