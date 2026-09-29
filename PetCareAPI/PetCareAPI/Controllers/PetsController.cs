@@ -2,6 +2,7 @@
 using PetCareAPI.Data;
 using PetCareAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using PetCareAPI.DTOs.Pets;
 
 namespace PetCareAPI.Controllers
 {
@@ -22,35 +23,85 @@ namespace PetCareAPI.Controllers
             var pets = await _context.Pets
                 .Include(p => p.Owner)
                 .ToListAsync();
-            return Ok(pets);
+
+            var petDtos = pets.Select(pet => new PetResponseDto
+            {
+                Id = pet.Id,
+                Name = pet.Name,
+                Type = pet.Type,
+                Age = pet.Age,
+                Weight = pet.Weight,
+                Breed = pet.Breed,
+                Gender = pet.Gender,
+                OwnerId = pet.OwnerId,
+                OwnerName = pet.Owner != null ? pet.Owner.Name : string.Empty
+            }).ToList();
+
+            return Ok(petDtos);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePet(Pet pet)
+        public async Task<IActionResult> CreatePet(CreatePetDto createPetDto)
         {
+            var ownerExists = await _context.Owners
+                .AnyAsync(o => o.Id == createPetDto.OwnerId);
+
+            if (!ownerExists)
+            {
+                return BadRequest("The specified owner does not exist.");
+            }
+
+            var pet = new Pet
+            {
+                OwnerId = createPetDto.OwnerId,
+                Name = createPetDto.Name,
+                Type = createPetDto.Type,
+                Age = createPetDto.Age,
+                Weight = createPetDto.Weight,
+                Breed = createPetDto.Breed,
+                Gender = createPetDto.Gender
+            };
+
             _context.Pets.Add(pet);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetPet), new { id = pet.Id }, pet);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePet(int id, Pet updatedPet)
+        public async Task<IActionResult> UpdatePet(int id, EditPetDto editPetDto)
         {
             var pet = await _context.Pets.FindAsync(id);
+            
             if (pet == null)
             {
                 return NotFound();
             }
-            pet.Name = updatedPet.Name;
-            pet.Type = updatedPet.Type;
-            pet.Age = updatedPet.Age;
-            pet.Weight = updatedPet.Weight;
-            pet.Breed = updatedPet.Breed;
-            pet.OwnerId = updatedPet.OwnerId;
+
+            pet.OwnerId = editPetDto.OwnerId;
+            pet.Name = editPetDto.Name;
+            pet.Type = editPetDto.Type;
+            pet.Age = editPetDto.Age;
+            pet.Weight = editPetDto.Weight;
+            pet.Breed = editPetDto.Breed;
+            pet.Gender = editPetDto.Gender;
+            pet.IsActive = editPetDto.IsActive;
 
             await _context.SaveChangesAsync();
 
-            return Ok(pet);
+            var petResponse = new PetResponseDto
+            {
+                Id = pet.Id,
+                OwnerId = pet.OwnerId,
+                Name = pet.Name,
+                Type = pet.Type,
+                Age = pet.Age,
+                Weight = pet.Weight,
+                Breed = pet.Breed,
+                Gender = pet.Gender,
+                IsActive = pet.IsActive
+            };
+
+            return Ok(petResponse);
         }
 
         [HttpDelete("{id}")]
@@ -69,12 +120,28 @@ namespace PetCareAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPet(int id)
         {
-            var pet = await _context.Pets.FindAsync(id);
+            var pet = await _context.Pets
+                .Include(p => p.Owner)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (pet == null)
             {
                 return NotFound();
             }
-            return Ok(pet);
+
+            var petDto = new PetResponseDto
+            {
+                Id = pet.Id,
+                Name = pet.Name,
+                Type = pet.Type,
+                Age = pet.Age,
+                Weight = pet.Weight,
+                Breed = pet.Breed,
+                Gender = pet.Gender,
+                OwnerId = pet.OwnerId,
+                OwnerName = pet.Owner?.Name ?? string.Empty
+            };
+            return Ok(petDto);
         }
 
     }

@@ -13,5 +13,7 @@ namespace PetCareAPI.Models
         public int Age { get; set; }
         public decimal Weight { get; set; }
         public string Breed { get; set; }
+        public Gender Gender { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

@@ -16,6 +16,6 @@ namespace PetCareAPI.Models
         [Required]
         public string Address { get; set; }
         public bool HasInsurance { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }
