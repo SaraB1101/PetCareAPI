@@ -2,6 +2,8 @@
 using PetCareAPI.Data;
 using PetCareAPI.DTOs.Owners;
 using PetCareAPI.DTOs.Pets;
+using PetCareAPI.Models;
+
 
 namespace PetCareAPI.Services
 {
@@ -13,19 +15,77 @@ namespace PetCareAPI.Services
             _context = context;
         }
 
-        public Task<OwnerResponseDto> CreateOwnerAsync(CreateOwnerDto createOwnerDto)
+        public async Task<OwnerResponseDto> CreateOwnerAsync(CreateOwnerDto createOwnerDto)
         {
-            throw new NotImplementedException();
+            var owner = new Owner
+            {
+                Name = createOwnerDto.Name,
+                Email = createOwnerDto.Email,
+                PhoneNumber = createOwnerDto.PhoneNumber,
+                Address = createOwnerDto.Address,
+                HasInsurance = createOwnerDto.HasInsurance
+            };
+
+            _context.Owners.Add(owner);
+            await _context.SaveChangesAsync();
+            
+            var ownerDto = new OwnerResponseDto
+            {
+                Id = owner.Id,
+                Name = owner.Name,
+                PhoneNumber = owner.PhoneNumber,
+                Email = owner.Email,
+                Address = owner.Address,
+                HasInsurance = owner.HasInsurance,
+                IsActive = owner.IsActive
+            };
+
+            return ownerDto;
         }
 
-        public Task<bool> DeleteOwnerAsync(int id)
+        public async Task<bool> DeleteOwnerAsync(int id)
         {
-            throw new NotImplementedException();
+            var owner = await _context.Owners.FindAsync(id);
+
+            if (owner == null)
+            {
+                return false;
+            }
+
+            _context.Owners.Remove(owner);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
-        public Task<OwnerResponseDto?> GetOwnerByIdAsync(int id)
+        public async Task<OwnerResponseDto?> GetOwnerByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var owner = await _context.Owners
+                .Include(o => o.Pets)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (owner == null)
+            {
+                return null;
+            }
+
+            var ownerDto = new OwnerResponseDto
+            {
+                Id = owner.Id,
+                Name = owner.Name,
+                PhoneNumber = owner.PhoneNumber,
+                Email = owner.Email,
+                Address = owner.Address,
+                HasInsurance = owner.HasInsurance,
+                IsActive = owner.IsActive,
+                Pets = owner.Pets.Select(pet => new PetSummaryDto
+                {
+                    Id = pet.Id,
+                    Name = pet.Name,
+                    Type = pet.Type
+                }).ToList()
+            };
+            return ownerDto;
         }
 
         public async Task<List<OwnerResponseDto>> GetOwnersAsync()
@@ -54,9 +114,25 @@ namespace PetCareAPI.Services
             return ownerDtos;
         }
 
-        public Task<bool> UpdateOwnerAsync(int id, EditOwnerDto editOwnerDto)
+        public async Task<bool> UpdateOwnerAsync(int id, EditOwnerDto editOwnerDto)
         {
-            throw new NotImplementedException();
+            var owner = await _context.Owners.FindAsync(id);
+
+            if(owner == null)
+            {
+                return false;
+            }
+
+            owner.Name = editOwnerDto.Name;
+            owner.Email = editOwnerDto.Email;
+            owner.PhoneNumber = editOwnerDto.PhoneNumber;
+            owner.Address = editOwnerDto.Address;
+            owner.HasInsurance = editOwnerDto.HasInsurance;
+            owner.IsActive = editOwnerDto.IsActive;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

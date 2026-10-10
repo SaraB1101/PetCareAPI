@@ -4,6 +4,7 @@ using Microsoft.Identity.Web;
 using Microsoft.EntityFrameworkCore;
 using PetCareAPI.Data;
 using System.Text.Json.Serialization;
+using PetCareAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddOpenApi();
 
-
+builder.Services.AddScoped<IOwnerService, OwnerService>();
+builder.Services.AddScoped<IPetService, PetService>();
+builder.Services.AddScoped<IVeterinarianService, VeterinarianService>();
 
 var app = builder.Build();
 

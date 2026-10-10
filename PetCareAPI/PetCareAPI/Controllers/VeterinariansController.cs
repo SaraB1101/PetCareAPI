@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PetCareAPI.Data;
-using PetCareAPI.Models;
-using Microsoft.EntityFrameworkCore;
+using PetCareAPI.Services;
+using PetCareAPI.DTOs.Veterinarians;
 
 namespace PetCareAPI.Controllers
 {
@@ -9,56 +8,45 @@ namespace PetCareAPI.Controllers
     [Route("api/[controller]")]
     public class VeterinariansController : ControllerBase
     {
-        public readonly ApplicationDbContext _context;
-        public VeterinariansController(ApplicationDbContext context)
+        public readonly IVeterinarianService _veterinarianService;
+        public VeterinariansController(IVeterinarianService veterinarianService)
         {
-            _context = context;
+            _veterinarianService = veterinarianService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetVeterinarians()
         {
-            var veterinarians = await _context.Veterinarians.ToListAsync();
+            var veterinarians = await _veterinarianService.GetVeterinariansAsync();
             return Ok(veterinarians);
         }
-
+        
         [HttpPost]
-        public async Task<IActionResult> CreateVeterinarian(Veterinarian veterinarian)
+        public async Task<IActionResult> CreateVeterinarian(CreateVeterinarianDto createVeterinarianDto)
         {
-            _context.Veterinarians.Add(veterinarian);
-            await _context.SaveChangesAsync();
+            var veterinarian = await _veterinarianService.CreateVeterinarianAsync(createVeterinarianDto);
             return CreatedAtAction(nameof(GetVeterinarian), new { id = veterinarian.Id }, veterinarian);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateVeterinarian(int id, Veterinarian updatedVeterinarian)
+        public async Task<IActionResult> UpdateVeterinarian(int id, EditVeterinarianDto editVeterinarianDto)
         {
-            var veterinarian = await _context.Veterinarians.FindAsync(id);
-            if (veterinarian == null)
+            var success = await _veterinarianService.UpdateVeterinarianAsync(id, editVeterinarianDto);
+            if (!success)
             {
                 return NotFound();
             }
-            veterinarian.Name = updatedVeterinarian.Name;
-            veterinarian.PhoneNumber = updatedVeterinarian.PhoneNumber;
-            veterinarian.Email = updatedVeterinarian.Email;
-            veterinarian.Address = updatedVeterinarian.Address;
-            veterinarian.Specialization = updatedVeterinarian.Specialization;
-            veterinarian.IsActive = updatedVeterinarian.IsActive;
-            await _context.SaveChangesAsync();
-            return Ok(veterinarian);
+            return Ok();
         }
         
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVeterinarian(int id)
         {
-            var veterinarian = await _context.Veterinarians.FindAsync(id);
-            if (veterinarian == null)
+            var success = await _veterinarianService.DeleteVeterinarianAsync(id);
+            if (!success)
             {
                 return NotFound();
             }
-
-            _context.Veterinarians.Remove(veterinarian);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -66,7 +54,7 @@ namespace PetCareAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVeterinarian(int id)
         {
-            var veterinarian = await _context.Veterinarians.FindAsync(id);
+            var veterinarian = await _veterinarianService.GetVeterinarianByIdAsync(id);
             if (veterinarian == null)
             {
                 return NotFound();
